@@ -32,6 +32,8 @@ ffi.cdef [[
 	BOOL Everything_IsVolumeResult(DWORD index);
 	BOOL Everything_IsFolderResult(DWORD index);
 	BOOL Everything_IsFileResult(DWORD index);
+	LPCTSTR Everything_GetResultPathA(int index);
+	LPCTSTR Everything_GetResultExtensionA(DWORD dwIndex);
 ]]
 
 local m = {}
@@ -76,18 +78,17 @@ function m.GetResultFilename( index )
 	end
 end
 
-function m.SetRequestFlags( ... ) --NOTE Doesn't work
+function m.SetRequestFlags( ... )
 	local arg = { ... }
 	local flags = bit.bor( unpack( arg ) )
-	local res = string.format( "%x", flags )
-	return e.Everything_SetRequestFlags( tonumber( res ) )
+	return e.Everything_SetRequestFlags( flags )
 end
 
-function m.GetResultSize( index ) --NOTE Doesn't work
+function m.GetResultSize( index )
 	local sz = ffi.new( "LARGE_INTEGER[1]" )
-	e.Everything_GetResultSize( index, sz[ 0 ] )
+	e.Everything_GetResultSize( index - 1, sz )
 	local size = sz[ 0 ].QuadPart
-	return size
+	return tonumber( size )
 end
 
 function m.GetNumFolderResults()
@@ -114,6 +115,24 @@ function m.IsFileResult( index )
 	local is_file = false
 	if e.Everything_IsFileResult( index - 1 ) ~= 0 then is_file = true end
 	return is_file
+end
+
+function m.GetResultPath( index )
+	if index > e.Everything_GetNumResults() or index < 1 then
+		return nil
+	else
+		return ffi.string( e.Everything_GetResultPathA( index - 1 ) )
+	end
+end
+
+function m.GetResultExtension( index )
+	if index > e.Everything_GetNumResults() or index < 1 then
+		print( 'heere' )
+		return nil
+	else
+		print( 'heere 2' )
+		return ffi.string( e.Everything_GetResultExtensionA( index - 1 ) )
+	end
 end
 
 return m

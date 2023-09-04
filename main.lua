@@ -1,16 +1,19 @@
 local Everything = require( "lua-everything" )
 
-Everything.SetSearch( "Program Files" )
-Everything.SetRequestFlags( Everything.REQUEST_FILE_NAME, EVERYTHING_REQUEST_PATH )
+Everything.SetSearch( "my_n" )
+Everything.SetRequestFlags( Everything.REQUEST_FILE_NAME, Everything.REQUEST_PATH,  Everything.REQUEST_EXTENSION, Everything.REQUEST_SIZE)
 Everything.Query( true )
 local count = Everything.GetNumResults()
 print( "flags: " .. Everything.GetRequestFlags() )
 
-for filename = 1, count do
-	print( Everything.GetResultFilename( filename ) )
-end
--- print( "size: " .. tostring( Everything.GetResultSize( 2 ) ) )
+-- for filename = 1, count do
+-- 	print( Everything.GetResultFilename( filename ) )
+-- end
+
+print( "size: " .. tostring( Everything.GetResultSize( 3 ) ) )
 print( Everything.IsFileResult( 1 ) )
+print( Everything.GetResultPath( 2 ) )
+print( Everything.GetResultExtension( (3) ) )
 
 function lovr.draw( pass )
 	pass:setColor( 0.2, 0.3, 0.5 )
