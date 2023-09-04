@@ -85,8 +85,8 @@ end
 
 function m.GetResultSize( index ) --NOTE Doesn't work
 	local sz = ffi.new( "LARGE_INTEGER[1]" )
-	e.Everything_GetResultSize( index, sz[ index ] )
-	local size = sz[ index ].QuadPart
+	e.Everything_GetResultSize( index, sz[ 0 ] )
+	local size = sz[ 0 ].QuadPart
 	return size
 end
 
