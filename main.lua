@@ -21,5 +21,7 @@ print( Everything.GetResultPath( 2 ) )
 print( Everything.GetResultExtension( (3) ) )
 print( Everything.GetResultDateAccessed( 4 ) )
 print( Everything.IsAdmin() )
+print( Everything.GetSearch() )
+print( Everything.GetSort() )
 
 Everything.CleanUp()
