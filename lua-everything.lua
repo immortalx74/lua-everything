@@ -1,5 +1,6 @@
 local ffi = require( "ffi" )
 local e = ffi.load( "Everything64.dll" )
+local kernel32 = ffi.load( "kernel32.dll" )
 local bit = require( "bit" )
 
 ffi.cdef [[
@@ -8,6 +9,7 @@ ffi.cdef [[
 	typedef const int BOOL;
 	typedef __int64 LONGLONG;
 	typedef long LONG;
+	typedef unsigned short WORD;
 	typedef union _LARGE_INTEGER {
 		struct {
 		  DWORD LowPart;
@@ -19,6 +21,22 @@ ffi.cdef [[
 		} u;
 		LONGLONG QuadPart;
 	  } LARGE_INTEGER;
+
+	  typedef struct _FILETIME {
+		DWORD dwLowDateTime;
+		DWORD dwHighDateTime;
+	  } FILETIME, *PFILETIME, *LPFILETIME;
+
+	  typedef struct _SYSTEMTIME {
+		WORD wYear;
+		WORD wMonth;
+		WORD wDayOfWeek;
+		WORD wDay;
+		WORD wHour;
+		WORD wMinute;
+		WORD wSecond;
+		WORD wMilliseconds;
+	  } SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
 
 	void Everything_SetSearchA(LPCTSTR lpString);
 	int Everything_QueryA(BOOL bWait);
@@ -34,6 +52,13 @@ ffi.cdef [[
 	BOOL Everything_IsFileResult(DWORD index);
 	LPCTSTR Everything_GetResultPathA(int index);
 	LPCTSTR Everything_GetResultExtensionA(DWORD dwIndex);
+	void Everything_Reset(void);
+	BOOL Everything_GetResultDateCreated(DWORD dwIndex, FILETIME *lpDateCreated);
+	BOOL Everything_GetResultDateModified(DWORD dwIndex, FILETIME *lpDateModified);
+	BOOL Everything_GetResultDateAccessed(DWORD dwIndex, FILETIME *lpDateAccessed);
+	DWORD Everything_GetLastError(void);
+
+	BOOL FileTimeToSystemTime(const FILETIME *lpFileTime, LPSYSTEMTIME lpSystemTime);
 ]]
 
 local m = {}
@@ -127,12 +152,38 @@ end
 
 function m.GetResultExtension( index )
 	if index > e.Everything_GetNumResults() or index < 1 then
-		print( 'heere' )
 		return nil
 	else
-		print( 'heere 2' )
 		return ffi.string( e.Everything_GetResultExtensionA( index - 1 ) )
 	end
+end
+
+function m.Reset()
+	e.Everything_Reset()
+end
+
+function m.GetResultDateCreated( index )
+	local ft = ffi.new( "FILETIME[1]" )
+	local st = ffi.new( "SYSTEMTIME[1]" )
+	local res = e.Everything_GetResultDateCreated( index - 1, ft )
+	kernel32.FileTimeToSystemTime( ft, st )
+	return st[ 0 ].wYear, st[ 0 ].wMonth, st[ 0 ].wDayOfWeek, st[ 0 ].wDay, st[ 0 ].wHour, st[ 0 ].wMinute, st[ 0 ].wSecond, st[ 0 ].wMilliseconds
+end
+
+function m.GetResultDateModified( index )
+	local ft = ffi.new( "FILETIME[1]" )
+	local st = ffi.new( "SYSTEMTIME[1]" )
+	local res = e.Everything_GetResultDateModified( index - 1, ft )
+	kernel32.FileTimeToSystemTime( ft, st )
+	return st[ 0 ].wYear, st[ 0 ].wMonth, st[ 0 ].wDayOfWeek, st[ 0 ].wDay, st[ 0 ].wHour, st[ 0 ].wMinute, st[ 0 ].wSecond, st[ 0 ].wMilliseconds
+end
+
+function m.GetResultDateAccessed( index )
+	local ft = ffi.new( "FILETIME[1]" )
+	local st = ffi.new( "SYSTEMTIME[1]" )
+	local res = e.Everything_GetResultDateAccessed( index - 1, ft )
+	kernel32.FileTimeToSystemTime( ft, st )
+	return st[ 0 ].wYear, st[ 0 ].wMonth, st[ 0 ].wDayOfWeek, st[ 0 ].wDay, st[ 0 ].wHour, st[ 0 ].wMinute, st[ 0 ].wSecond, st[ 0 ].wMilliseconds
 end
 
 return m
